@@ -22,7 +22,7 @@ A lightweight, Discord-integrated monitoring daemon for a single Linux server (b
 ## Requirements
 
 ```bash
-pip install schedule python-dotenv requests psutil
+pip install -r requirements.txt
 ```
 
 ## Setup
