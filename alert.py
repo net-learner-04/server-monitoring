@@ -3,7 +3,6 @@ import datetime as dt
 import requests, os, dotenv, time, socket
 import psutil
 from pathlib import Path
-
 import db
 
 dotenv.load_dotenv(Path(__file__).parent / ".env")
@@ -126,19 +125,6 @@ def send_recovery_batch(items):
             db.record_alert(item["key"], "recovery", item["message"])
 
 
-def send_heartbeat():
-    '''A function that pings an external dead man's switch (e.g. healthchecks.io)
-    so a third party can detect if this daemon stops running.'''
-    url = os.getenv("HEALTHCHECK_URL")
-    if not url:
-        return
-
-    try:
-        requests.get(url, timeout=10)
-    except requests.exceptions.RequestException as e:
-        log.error(f"Heartbeat ping failed: {e}")
-
-
 def send_weekly_summary():
     '''A function that builds and sends a weekly digest of resource usage,
     then prunes old metric history to keep the database small.'''
@@ -164,5 +150,4 @@ def send_weekly_summary():
         "footer": {"text": f"{HOSTNAME} · Reported at {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
     }
     send_message({"embeds": [embed]})
-    
     db.prune_metric_history(DISK_TREND_WINDOW_DAYS)
