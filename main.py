@@ -2,12 +2,11 @@ import logging as log
 import time, signal, json
 import schedule
 import logger as logger
-
 import db
 from alert import (
     boot_time_check, update_boot_time,
     send_alert_batch, send_recovery_batch,
-    send_heartbeat, send_weekly_summary,
+    send_weekly_summary,
 )
 from check import (
     server_status_check, service_status_check,
@@ -74,12 +73,6 @@ def check_services():
         send_alert_batch(items)
 
 
-def check_ssl():
-    items = ssl_expiry_check()
-    if items:
-        send_alert_batch(items)
-
-
 def check_ports():
     '''Function that checks expected listening ports. No debounce - a closed
     port is immediately actionable, unlike a resource spike.'''
@@ -88,8 +81,8 @@ def check_ports():
         send_alert_batch(items)
 
 
-def check_security_updates():
-    items = security_updates_alert_check()
+def check_ssl():
+    items = ssl_expiry_check()
     if items:
         send_alert_batch(items)
 
@@ -100,12 +93,14 @@ def check_disk_trend():
         send_alert_batch(items)
 
 
+def check_security_updates():
+    items = security_updates_alert_check()
+    if items:
+        send_alert_batch(items)
+
+
 def weekly_summary():
     send_weekly_summary()
-
-
-def heartbeat():
-    send_heartbeat()
 
 
 def main_loop():
@@ -121,7 +116,6 @@ def main_loop():
     schedule.every(INTERVALS["ssl"]).seconds.do(check_ssl)
     schedule.every(INTERVALS["security"]).seconds.do(check_security_updates)
     schedule.every(INTERVALS["summary"]).seconds.do(weekly_summary)
-    schedule.every(60).seconds.do(heartbeat)
 
     log.info("Server monitoring daemon started.")
 
